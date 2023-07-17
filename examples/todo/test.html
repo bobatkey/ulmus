@@ -1,0 +1,103 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset=utf8>
+    <title>Todo list</title>
+    <style type="text/css">
+      section.todo-list {
+	  width: 768px;
+	  margin-left: 500px;
+	  margin-top: 100px;
+	  font-family: "Ubuntu";
+	  font-size: 24px;
+      }
+
+      section.todo-list * {
+	  box-sizing: border-box;
+      }
+
+      section.todo-list > header > input {
+	  width: 100%;
+	  border: 0;
+	  border-radius: 7px 7px 0px 0px;
+	  padding: 16px 16px 16px 16px;
+      }
+
+      section.todo-list input {
+	  font-family: "Ubuntu";
+	  font-size: 24px;
+	  background-color: #e0f0f0;
+      }
+
+      section.todo-list > main > ul {
+	  width: 100%;
+	  list-style-type: none;
+	  padding: 0 0 0 0;
+	  margin: 0 0 0 0;
+      }
+
+      section.todo-list > main > ul > li {
+	  background-color: #c0f0f0;
+	  display: flex;
+	  /* align-items: stretch; */
+      }
+
+      section.todo-list > main > ul > li > input[type="checkbox"] {
+	  flex: 1;
+      }
+
+      section.todo-list > main > ul > li > label {
+	  display: block;
+	  margin: 0;
+	  padding: 8px 8px 8px 8px;
+	  flex: 10;
+	  border: 0;
+      }
+
+      section.todo-list > main > ul > li > label.done {
+	  color: #808080;
+	  text-decoration: line-through;
+      }
+
+      section.todo-list > main > ul > li > input[type="text"] {
+	  display: block;
+	  margin: 0;
+	  padding: 8px 8px 8px 8px;
+	  flex: 10;
+	  border: 0;
+      }
+
+      section.todo-list > main > ul > li > button {
+	  display: block;
+	  border: 0;
+	  flex: 1;
+	  background-color: #c0f0f0;
+	  font-weight: bold;
+	  border-radius: 10px;
+	  width: 20px;
+	  margin: 2px;
+      }
+
+      section.todo-list > main > ul > li > button:hover {
+	  background-color: #f0f0f0;
+      }
+
+      section.todo-list > main > ul > li > button:active {
+	  background-color: #f09090;
+      }
+
+      section.todo-list > footer {
+	  margin-top: 5px;
+	  margin-left: 5px;
+	  margin-right: 5px;
+	  font-size: 18px;
+	  display: flex;
+	  justify-content: space-between;
+      }
+ </style>
+  </head>
+  <body>
+    <div id="todo-app"></div>
+    <script src="../_build/default/todo/todo.bc.js"></script>
+  </body>
+</html>

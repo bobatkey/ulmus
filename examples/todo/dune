@@ -1,0 +1,4 @@
+(executable
+ (name todo)
+ (modes js)
+ (libraries ulmus js_of_ocaml))
