@@ -74,6 +74,20 @@ let attach ~parent_id ~initial component =
   | None -> () (* FIXME: throw an exception? *)
   | Some parent -> ignore (run parent component initial)
 
+let attach_from_data ~parent_id ~initial component =
+  let parent_id = Js.string parent_id in
+  let node_opt = Dom_html.document##getElementById parent_id in
+  match Js.Opt.to_option node_opt with
+  | None -> () (* FIXME: throw an exception? *)
+  | Some parent ->
+     let initial_str =
+       match Js.Opt.to_option parent##.textContent with
+       | None -> ""
+       | Some str -> Js.to_string str
+     in
+     let initial = initial initial_str in
+     ignore (run parent component initial)
+
 module Cmd = struct
   (* FIXME: multiple events on the same object? *)
   type 'a t =
