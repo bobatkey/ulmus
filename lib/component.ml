@@ -85,6 +85,7 @@ let attach_from_data ~parent_id ~initial component =
        | None -> ""
        | Some str -> Js.to_string str
      in
+     parent##.textContent := Js.Opt.empty;
      let initial = initial initial_str in
      ignore (run parent component initial)
 
