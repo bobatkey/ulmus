@@ -12,6 +12,7 @@ depends: [
   "js_of_ocaml-ppx"
   "sexplib"
   "ppx_sexp_conv"
+  "html_sig"
   "odoc" {with-doc}
 ]
 build: [
