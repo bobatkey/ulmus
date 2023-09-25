@@ -1,5 +1,6 @@
 (library
  (name ulmus)
+ (public_name ulmus)
  (libraries js_of_ocaml html_sig sexplib)
  (preprocess
   (pps js_of_ocaml-ppx ppx_sexp_conv))

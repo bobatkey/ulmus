@@ -1,2 +1,3 @@
 (library
- (name html_sig))
+ (name html_sig)
+ (public_name html_sig))

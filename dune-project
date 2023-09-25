@@ -23,4 +23,7 @@
  (tags
   (topics "to describe" your project)))
 
+(package
+ (name html_sig))
+
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
