@@ -2,3 +2,7 @@
  (name todo)
  (modes js)
  (libraries ulmus js_of_ocaml))
+
+(alias
+ (name all)
+ (deps todo.bc.js todo.html))
