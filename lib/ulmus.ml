@@ -14,3 +14,4 @@ type 'a component = (module S with type state = 'a)
 
 let attach = Component.attach
 let attach_from_data = Component.attach_from_data
+let attach_all = Component.attach_all

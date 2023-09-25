@@ -10,45 +10,6 @@ end
 
 type 'state t = (module S with type state = 'state)
 
-(*
-type impossible = { impossible : 'a. 'a }
-
-let fixed html =
-  let module C = struct
-    type state = unit
-    type action = impossible
-
-    let render () = html
-    let update action () = ()
-    let initial = ()
-  end
-  in
-  (module C : S)
-
-let (^^) (module C1 : S) (module C2 : S) =
-  let module C = struct
-    type state = C1.state * C2.state
-    type action =
-      | C1 of C1.action
-      | C2 of C2.action
-
-    let render (s1, s2) =
-      let html1 = Dynamic_HTML.map (fun a -> C1 a) (C1.render s1)
-      and html2 = Dynamic_HTML.map (fun a -> C2 a) (C2.render s2)
-      in
-      Dynamic_HTML.(html1 ^^ html2)
-
-    let update = function
-      | C1 action -> fun (s1, s2) -> (C1.update action s1, s2)
-      | C2 action -> fun (s1, s2) -> (s1, C2.update action s2)
-
-    let initial =
-      (C1.initial, C2.initial)
-  end
-  in
-  (module C : S)
-*)
-
 let run (type state) parent (module C : S with type state = state) initial =
   let current_tree = ref None in
   let rec loop state =
@@ -74,20 +35,46 @@ let attach ~parent_id ~initial component =
   | None -> () (* FIXME: throw an exception? *)
   | Some parent -> ignore (run parent component initial)
 
+let attach_node_init parent initial component =
+  let initial_str =
+    match Js.Opt.to_option parent##.textContent with
+    | None -> ""
+    | Some str -> Js.to_string str
+  in
+  parent##.textContent := Js.Opt.empty;
+  let initial = initial initial_str in
+  ignore (run parent component initial)
+
+
 let attach_from_data ~parent_id ~initial component =
   let parent_id = Js.string parent_id in
   let node_opt = Dom_html.document##getElementById parent_id in
   match Js.Opt.to_option node_opt with
   | None -> () (* FIXME: throw an exception? *)
-  | Some parent ->
-     let initial_str =
-       match Js.Opt.to_option parent##.textContent with
-       | None -> ""
-       | Some str -> Js.to_string str
-     in
-     parent##.textContent := Js.Opt.empty;
-     let initial = initial initial_str in
-     ignore (run parent component initial)
+  | Some parent -> attach_node_init parent initial component
+
+let attach_all name initial component =
+  let divs =
+    Dom.list_of_nodeList
+      (Dom_html.document##getElementsByTagName (Js.string "div"))
+  in
+  List.iter
+    (fun el ->
+      match Js.Opt.to_option (el##getAttribute (Js.string "data-widget")) with
+       | None -> ()
+       | Some str ->
+          if Js.to_string str = name then
+            attach_node_init el initial component)
+    divs
+
+(* Plan:
+
+   1. Go through every 'div' that has data-widget="lmt" in it
+   2. Attach the widget to this, using the initial data from the document
+   3. TODO: If there is browser local stored data, then supply that as well
+   4. TODO: Every time the loop goes round, store the data in browser local storage
+   5. TODO: Link the outputs to the inputs of later elements !!!
+ *)
 
 module Cmd = struct
   (* FIXME: multiple events on the same object? *)

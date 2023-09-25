@@ -14,6 +14,9 @@ val attach : parent_id:string -> initial:'state -> 'state t -> unit
 
 val attach_from_data : parent_id:string -> initial:(string -> 'state) -> 'state t -> unit
 
+val attach_all : string -> (string -> 'state) -> 'state t -> unit
+
+
 module Cmd : sig
   type 'a t
 
