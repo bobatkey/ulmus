@@ -240,4 +240,4 @@ module App = struct
 end
 
 let () =
-  Ulmus.attach ~parent_id:"todo-app" ~initial:App.initial (module App)
+  Ulmus.attach "todo-app" (module App)

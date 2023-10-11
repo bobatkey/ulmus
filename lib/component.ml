@@ -1,59 +1,134 @@
 open Js_of_ocaml
 
-module type S = sig
+let localStorageSet, localStorageGet =
+  match Js.Optdef.to_option Dom_html.window##.localStorage with
+  | None -> ((fun _ _ -> ()), fun _ -> None)
+  | Some localStorage ->
+      ( (fun key data -> localStorage##setItem key data),
+        fun key -> Js.Opt.to_option (localStorage##getItem key) )
+
+module type COMPONENT = sig
   type state
   type action
 
   val render : state -> action Html.t
   val update : action -> state -> state
+  val initial : state
 end
 
-type 'state t = (module S with type state = 'state)
+module type PERSISTENT = sig
+  include COMPONENT
 
-let run (type state) parent (module C : S with type state = state) initial =
+  val serialise : state -> string
+  val deserialise : string -> state option
+end
+
+let of_persistent ~key (module P : PERSISTENT) =
+  let key = Js.string key in
+  let module C =
+    struct
+      type state = P.state
+      type action = P.action
+
+      let render = P.render
+      let update action state =
+        let state = P.update action state in
+        localStorageSet key (Js.string (P.serialise state));
+        state
+
+      let initial =
+        match localStorageGet key with
+        | None -> P.initial
+        | Some data ->
+           match P.deserialise (Js.to_string data) with
+           | None -> P.initial
+           | Some state -> state
+    end
+  in
+  (module C : COMPONENT)
+
+(* type 'state t = (module S with type state = 'state) *)
+
+(* Attaches the component to the given parent node, and sets it
+   running *)
+let run parent (module C : COMPONENT) =
   let current_tree = ref None in
-  let rec loop state =
-    let handler action = loop (C.update action state) in
+  let rec handler state action =
+    let state = C.update action state in
+    render state
+  and render state =
     let html = C.render state in
     (match !current_tree with
-    | None ->
-        let realised_tree = Html.create ~handler ~parent html in
+     | None ->
+        let realised_tree = Html.create ~handler:(handler state) ~parent html in
         current_tree := Some realised_tree
-    | Some current ->
+     | Some current ->
         let realised_tree =
-          Html.update ~handler ~parent ~current html
+          Html.update ~handler:(handler state) ~parent ~current html
         in
         current_tree := Some realised_tree);
     Js._false
   in
-  loop initial
+  render C.initial
 
-let attach ~parent_id ~initial component =
+(*
+let run_persistent parent key (module C : PERSISTENT) =
+  let key = Js.string key in
+  let current_tree = ref None in
+  let rec handler state action =
+    let state = C.update action state in
+    (* FIXME: take the onStateChange handler as a parameter *)
+    localStorageSet key (Js.string (C.snooze state));
+    render state
+  and render state =
+    let html = C.render state in
+    (match !current_tree with
+     | None ->
+        let realised_tree = Html.create ~handler:(handler state) ~parent html in
+        current_tree := Some realised_tree
+     | Some current ->
+        let realised_tree =
+          Html.update ~handler:(handler state) ~parent ~current html
+        in
+        current_tree := Some realised_tree);
+    Js._false
+  in
+  let state =
+    Option.value
+      ~default:C.initial
+      (Option.bind (localStorageGet key)
+       @@ fun data -> C.awaken (Js.to_string data))
+  in
+  render state
+ *)
+
+let attach parent_id component =
   let parent_id = Js.string parent_id in
   let node_opt = Dom_html.document##getElementById parent_id in
   match Js.Opt.to_option node_opt with
   | None -> () (* FIXME: throw an exception? *)
-  | Some parent -> ignore (run parent component initial)
+  | Some parent -> ignore (run parent component)
 
-let attach_node_init parent initial component =
+let attach_node_init parent component =
   let initial_str =
     match Js.Opt.to_option parent##.textContent with
     | None -> ""
     | Some str -> Js.to_string str
   in
   parent##.textContent := Js.Opt.empty;
-  let initial = initial initial_str in
-  ignore (run parent component initial)
+  let component = component initial_str in
+  ignore (run parent component)
 
-
+(*
 let attach_from_data ~parent_id ~initial component =
   let parent_id = Js.string parent_id in
   let node_opt = Dom_html.document##getElementById parent_id in
   match Js.Opt.to_option node_opt with
   | None -> () (* FIXME: throw an exception? *)
   | Some parent -> attach_node_init parent initial component
+ *)
 
-let attach_all name initial component =
+let attach_all name component =
   let divs =
     Dom.list_of_nodeList
       (Dom_html.document##getElementsByTagName (Js.string "div"))
@@ -61,10 +136,10 @@ let attach_all name initial component =
   List.iter
     (fun el ->
       match Js.Opt.to_option (el##getAttribute (Js.string "data-widget")) with
-       | None -> ()
-       | Some str ->
-          if Js.to_string str = name then
-            attach_node_init el initial component)
+      | None -> ()
+      | Some str ->
+         if Js.to_string str = name then
+           attach_node_init el component)
     divs
 
 (* Plan:
@@ -107,6 +182,7 @@ module Cmd = struct
   (* Retrieve from server... *)
 end
 
+(*
 module type FREEZABLE = sig
   include S
 
@@ -139,13 +215,6 @@ module Freezable_Of_Sexpable (C : SEXP_S) = struct
 end
 
 type 'state freezable = (module FREEZABLE with type state = 'state)
-
-let localStorageSet, localStorageGet =
-  match Js.Optdef.to_option Dom_html.window##.localStorage with
-  | None -> ((fun _ _ -> ()), fun _ -> None)
-  | Some localStorage ->
-      ( (fun key data -> localStorage##setItem key data),
-        fun key -> Js.Opt.to_option (localStorage##getItem key) )
 
 let run_persistent (type state) key parent
     (module C : FREEZABLE with type state = state) initial =
@@ -211,3 +280,4 @@ let attach_persistent ~parent_id ~key ~initial component =
   match Js.Opt.to_option node_opt with
   | None -> () (* FIXME: throw an exception? *)
   | Some parent -> ignore (run_persistent key parent component initial)
+ *)
