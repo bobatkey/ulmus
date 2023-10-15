@@ -19,7 +19,7 @@
  (name ulmus)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune js_of_ocaml-ppx sexplib ppx_sexp_conv html_sig)
+ (depends ocaml dune js_of_ocaml-ppx sexplib ppx_sexp_conv html_sig base64)
  (tags
   (topics "to describe" your project)))
 
