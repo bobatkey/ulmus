@@ -54,4 +54,4 @@ val attach : string -> (module COMPONENT) -> unit
 
 val attach_all : string -> (string -> (module PERSISTENT)) -> unit
 
-val attach_download_button : string -> string -> unit
+val attach_download_button : string -> unit

@@ -147,7 +147,7 @@ let attach_all name component =
          ())
     divs
 
-let attach_download_all filename button_id =
+let attach_download_all button_id =
   let keys =
     Dom_html.document##getElementsByTagName (Js.string "div")
     |> Dom.list_of_nodeList
@@ -165,13 +165,19 @@ let attach_download_all filename button_id =
                 ~some:Js.to_string))
     |> String.concat ","
     |> Base64.encode_exn
-    |> Printf.sprintf "data:application/x-cs208-answers;base64,%s"
+    |> Printf.sprintf "data:application/x-answers;base64,%s"
     |> Js.string
   in
   let button_id = Js.string button_id in
   Dom_html.document##getElementById button_id
   |> Fun.flip Js.Opt.iter
        (fun button ->
+         let filename =
+           Js.Opt.case
+             (button##getAttribute (Js.string "data-filename"))
+             (fun () -> Js.string "answers.txt")
+             (fun nm -> nm)
+         in
          ignore
            (Dom_html.addEventListener
               button
@@ -180,7 +186,7 @@ let attach_download_all filename button_id =
                    let data = get_data_url () in
                    let el = Dom_html.createA Dom_html.document in
                    el##setAttribute (Js.string "href") data;
-                   el##setAttribute (Js.string "download") (Js.string filename);
+                   el##setAttribute (Js.string "download") filename;
                    el##.style##.display := Js.string "none";
                    Dom.appendChild (Dom_html.document##.body) el;
                    el##click;
