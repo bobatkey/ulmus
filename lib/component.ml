@@ -147,7 +147,7 @@ let attach_all name component =
          ())
     divs
 
-let attach_download_all button_id =
+let attach_download_all filename button_id =
   let keys =
     Dom_html.document##getElementsByTagName (Js.string "div")
     |> Dom.list_of_nodeList
@@ -178,7 +178,13 @@ let attach_download_all button_id =
               Dom_html.Event.click
               (Dom_html.handler (fun _ ->
                    let data = get_data_url () in
-                   ignore @@ Dom_html.window##open_ data (Js.string "_self") Js.Opt.empty;
+                   let el = Dom_html.createA Dom_html.document in
+                   el##setAttribute (Js.string "href") data;
+                   el##setAttribute (Js.string "download") (Js.string filename);
+                   el##.style##.display := Js.string "none";
+                   Dom.appendChild (Dom_html.document##.body) el;
+                   el##click;
+                   Dom.removeChild (Dom_html.document##.body) el;
                    Js._false))
               Js._false))
 
