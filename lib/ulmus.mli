@@ -50,8 +50,6 @@ module type PERSISTENT = sig
   val deserialise : string -> state option
 end
 
-val of_persistent : key:string -> (module PERSISTENT) -> (module COMPONENT)
-
 val attach : string -> (module COMPONENT) -> unit
 
-val attach_all : string -> (string -> (module COMPONENT)) -> unit
+val attach_all : string -> (string -> (module PERSISTENT)) -> unit

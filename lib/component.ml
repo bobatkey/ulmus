@@ -2,7 +2,8 @@ open Js_of_ocaml
 
 let localStorageSet, localStorageGet =
   match Js.Optdef.to_option Dom_html.window##.localStorage with
-  | None -> ((fun _ _ -> ()), fun _ -> None)
+  | None ->
+     ((fun _ _ -> ()), fun _ -> None)
   | Some localStorage ->
       ( (fun key data -> localStorage##setItem key data),
         fun key -> Js.Opt.to_option (localStorage##getItem key) )
@@ -24,7 +25,6 @@ module type PERSISTENT = sig
 end
 
 let of_persistent ~key (module P : PERSISTENT) =
-  let key = Js.string key in
   let module C =
     struct
       type state = P.state
@@ -47,7 +47,8 @@ let of_persistent ~key (module P : PERSISTENT) =
   in
   (module C : COMPONENT)
 
-(* type 'state t = (module S with type state = 'state) *)
+let no_persist (module P : PERSISTENT) =
+  (module P : COMPONENT)
 
 (* Attaches the component to the given parent node, and sets it
    running *)
@@ -136,10 +137,14 @@ let attach_all name component =
   List.iter
     (fun el ->
       match Js.Opt.to_option (el##getAttribute (Js.string "data-widget")) with
-      | None -> ()
-      | Some str ->
-         if Js.to_string str = name then
-           attach_node_init el component)
+      | Some str when String.equal (Js.to_string str) name ->
+         (match Js.Opt.to_option (el##getAttribute (Js.string "data-key")) with
+          | Some key ->
+             attach_node_init el (fun config -> of_persistent ~key (component config))
+          | None ->
+             attach_node_init el (fun config -> no_persist (component config)))
+      | None | Some _ ->
+         ())
     divs
 
 (* Plan:
