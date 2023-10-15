@@ -163,7 +163,7 @@ let attach_download_all button_id =
              (Option.fold (localStorageGet key)
                 ~none:""
                 ~some:Js.to_string))
-    |> String.concat ","
+    |> String.concat "\n"
     |> Base64.encode_exn
     |> Printf.sprintf "data:application/x-answers;base64,%s"
     |> Js.string
