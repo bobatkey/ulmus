@@ -23,3 +23,5 @@ let of_persistent = Component.of_persistent
 let attach = Component.attach
 
 let attach_all = Component.attach_all
+
+let attach_download_button = Component.attach_download_all

@@ -147,15 +147,42 @@ let attach_all name component =
          ())
     divs
 
-(* Plan:
+let attach_download_all button_id =
+  let keys =
+    Dom_html.document##getElementsByTagName (Js.string "div")
+    |> Dom.list_of_nodeList
+    |> List.filter_map
+         (fun el -> Js.Opt.to_option (el##getAttribute (Js.string "data-key")))
+  in
+  let get_data_url () =
+    keys
+    |> List.map
+         (fun key ->
+           Printf.sprintf "%s:%S"
+             (Js.to_string key)
+             (Option.fold (localStorageGet key)
+                ~none:""
+                ~some:Js.to_string))
+    |> String.concat ","
+    |> Base64.encode_exn
+    |> Printf.sprintf "data:application/x-cs208-answers;base64,%s"
+    |> Js.string
+  in
+  let button_id = Js.string button_id in
+  Dom_html.document##getElementById button_id
+  |> Fun.flip Js.Opt.iter
+       (fun button ->
+         ignore
+           (Dom_html.addEventListener
+              button
+              Dom_html.Event.click
+              (Dom_html.handler (fun _ ->
+                   let data = get_data_url () in
+                   ignore @@ Dom_html.window##open_ data (Js.string "_self") Js.Opt.empty;
+                   Js._false))
+              Js._false))
 
-   1. Go through every 'div' that has data-widget="lmt" in it
-   2. Attach the widget to this, using the initial data from the document
-   3. TODO: If there is browser local stored data, then supply that as well
-   4. TODO: Every time the loop goes round, store the data in browser local storage
-   5. TODO: Link the outputs to the inputs of later elements !!!
- *)
-
+(*
 module Cmd = struct
   (* FIXME: multiple events on the same object? *)
   type 'a t =
@@ -186,6 +213,7 @@ module Cmd = struct
 
   (* Retrieve from server... *)
 end
+ *)
 
 (*
 module type FREEZABLE = sig
