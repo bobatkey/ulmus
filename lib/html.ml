@@ -551,7 +551,7 @@ let set_input_props node attrs =
   Dom_html.CoerceTo.input node >>?= fun input_node ->
   input_node##getAttribute !$"type" >>?= fun s ->
   match Js.to_string s with
-  | "checkbox" ->
+  | "checkbox" | "radio" ->
       input_node##.checked := Js.bool (String.Map.mem "checked" attrs)
   | _ -> (
       try input_node##.value := !$(String.Map.find "value" attrs)
